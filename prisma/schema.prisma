@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int               @id @default(autoincrement())
+  email           String            @unique
+  phoneNumber     String            @unique
+  UserSecret      UserSecret?
+  UserSession     UserSession[]
+  Profile         Profile?
+  Order           Order[]
+  Chat            Chat[]
+  Favorites       Favorites[]
+  PaymentMethod   PaymentMethod[]
+  HelpAndFeedBack HelpAndFeedBack[]
+  notification    Notification[]
+  Message         Message[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  Cart            Cart?
+  ShippingDetails ShippingDetails[]
+}
+
+model UserSecret {
+  id         Int    @id @default(autoincrement())
+  password   String
+  userSecret User   @relation(fields: [userId], references: [id])
+  userId     Int    @unique
+}
+
+model UserSession {
+  id           Int    @id @default(autoincrement())
+  refreshToken String
+  userSession  User   @relation(fields: [userId], references: [id])
+  userId       Int
+}
+
+model Profile {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  gender      String
+  address     String
+  country     String
+  city        String
+  state       String
+  postalCode  String
+  userProfile User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int      @unique
+  Order       Order[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Cart {
+  id       Int        @id @default(autoincrement())
+  userCart User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int        @unique
+  CartItem CartItem[]
+}
+
+model CartItem {
+  id       Int  @id @default(autoincrement())
+  quantity Int
+  userCart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId   Int
+}
+
+model Order {
+  id              Int               @id @default(autoincrement())
+  totalAmount     Int
+  status          OrderStatus       @default(PLACED)
+  profileOrder    Profile           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId       Int
+  userOrder       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  orderItems      orderItem[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  ShippingDetails ShippingDetails[]
+}
+
+enum OrderStatus {
+  PLACED
+  PROCESSING
+  ON_THE_WAY
+  DELIVERED
+}
+
+model orderItem {
+  id        Int    @id @default(autoincrement())
+  items     String
+  quantity  Int
+  price     String
+  orderItem Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   Int
+}
+
+model ShippingDetails {
+  id                   Int   @id @default(autoincrement())
+  orderShippingDetails Order @relation(fields: [orderId], references: [id])
+  orderId              Int
+  orderUser            User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId               Int
+}
+
+model Chat {
+  id        Int       @id @default(autoincrement())
+  Message   Message[]
+  userChat  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id           Int            @id @default(autoincrement())
+  content      String
+  userSender   User           @relation(fields: [userId], references: [id])
+  userId       Int
+  ChatMessage  Chat           @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId       Int
+  notification Notification[]
+}
+
+model Notification {
+  id                  Int      @id @default(autoincrement())
+  message             String
+  usernotification    User     @relation(fields: [userId], references: [id])
+  userId              Int
+  messageNotification Message  @relation(fields: [messageId], references: [id])
+  messageId           Int
+  createdAt           DateTime @default(now())
+}
+
+model Favorites {
+  id        Int    @id @default(autoincrement())
+  userFavourites User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int
+  Resturant      Resturant[]
+}
+
+model Resturant {
+  id                  Int       @id @default(autoincrement())
+  ResturantName       String
+  discount            Int
+  rating              Int
+  resturantFavourites Favorites @relation(fields: [FavoritesId], references: [id])
+  FavoritesId         Int
+}
+
+model PaymentMethod {
+  id                Int            @id @default(autoincrement())
+  paymentMethodType CardListStatus @default(MASTERCARD)
+  cartHolder        String
+  cartNumber        String
+  expDate           String
+  cvv               String
+  userPaymentMethod User           @relation(fields: [userId], references: [id])
+  userId            Int
+  createdAt         DateTime       @default(now())
+}
+
+enum CardListStatus {
+  MASTERCARD
+  PAYPAL
+  PAY
+}
+
+model HelpAndFeedBack {
+  id                  Int    @id @default(autoincrement())
+  subject             String
+  message             String
+  userHelpAndFeedBack User   @relation(fields: [userId], references: [id])
+  userId              Int
+}
+
+model PrivacyAndPolicy {
+  id   Int    @id @default(autoincrement())
+  data String
+}
+
+model TermsAndCondition {
+  id   Int    @id @default(autoincrement())
+  data String
+}
+
+model AboutApps {
+  id   Int    @id @default(autoincrement())
+  data String
+}
